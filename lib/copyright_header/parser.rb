@@ -64,11 +64,15 @@ module CopyrightHeader
     @file = nil
     @contents = nil
     @config = nil
+    @marker = nil
+    @marker_length = nil
 
-    def initialize(file, config)
+    def initialize(file, config, marker, marker_length)
       @file = file
       @contents = File.read(@file)
       @config = config
+      @marker = marker
+      @marker_length = marker_length
     end
 
     def format(license)
@@ -119,7 +123,7 @@ module CopyrightHeader
       if has_copyright?
         text = self.format(license)
         # Due to editors messing with whitespace, we'll make this more of a fuzzy match and use \s to match whitespace
-        pattern = Regexp.escape(text).gsub(/\\[ n]/, '\s*').gsub(/\\s*$/, '\s')
+        pattern = Regexp.escape(text).gsub(/\\s*$/, '\s')
         exp = Regexp.new(pattern)
         @contents.gsub!(exp, '')
         @contents
@@ -129,15 +133,20 @@ module CopyrightHeader
       end
     end
 
-    def has_copyright?(lines = 10)
-      @contents.split(/\n/)[0..lines].select { |line| line =~ /(?!class\s+)([Cc]opyright|[Ll]icense)\s/ }.length > 0
+    def has_copyright?
+      @contents.split(/\n/)[0..@marker_length].select { |line| line =~ /(?!class\s+)([Cc]opyright|[Ll]icense#{@marker})\s/ }.length > 0
     end
   end
 
   class Syntax
     attr_accessor :guess_extension
 
-    def initialize(config, guess_extension = false)
+    @marker = nil
+    @marker_length = nil
+
+    def initialize(config, marker, marker_length, guess_extension = false)
+      @marker = marker
+      @marker_length = marker_length
       @guess_extension = guess_extension
       @config = {}
       syntax = YAML.load_file(config)
@@ -165,7 +174,7 @@ module CopyrightHeader
     end
 
     def header(file)
-      Header.new(file, @config[ext(file)])
+      Header.new(file, @config[ext(file)], @marker, @marker_length)
     end
   end
 
@@ -182,7 +191,7 @@ module CopyrightHeader
                              :copyright_years => @options[:copyright_years],
                              :copyright_holders => @options[:copyright_holders],
                              :word_wrap => @options[:word_wrap])
-      @syntax = Syntax.new(@options[:syntax], @options[:guess_extension])
+      @syntax = Syntax.new(@options[:syntax], @options[:marker], @options[:marker_length], @options[:guess_extension])
     end
 
     def execute

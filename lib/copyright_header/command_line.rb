@@ -72,6 +72,16 @@ module CopyrightHeader
             @options[:word_wrap] = len.to_i
           end
 
+          @options[:marker_length] ||= 20
+          opts.on( '--marker-length LEN', 'Copyright marker search lines count (default: 20)' ) do |len|
+            @options[:marker_length] = len.to_i
+          end
+
+          @options[:marker] ||= ""
+          opts.on( '--marker REGEX', 'Copyright marker regex (default: "")' ) do |regex|
+            @options[:marker] = regex
+          end
+
           opts.on( '-a', '--add-path PATH', 'Recursively insert header in all files found in path (allows multiple paths separated by platform path-separator "' + File::PATH_SEPARATOR + '")' ) do |path|
             @options[:add_path] = path
           end
