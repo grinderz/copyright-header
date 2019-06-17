@@ -77,8 +77,8 @@ module CopyrightHeader
             @options[:marker_length] = len.to_i
           end
 
-          @options[:marker] ||= ""
-          opts.on( '--marker REGEX', 'Copyright marker regex (default: "")' ) do |regex|
+          @options[:marker] ||= "[Cc]opyright|[Ll]icense"
+          opts.on( '--marker REGEX', 'Copyright marker regex (default: "[Cc]opyright|[Ll]icense")' ) do |regex|
             @options[:marker] = regex
           end
 

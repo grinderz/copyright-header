@@ -94,10 +94,15 @@ module CopyrightHeader
       if @config.has_key?(:after) && @config[:after].instance_of?(Array)
         copyright_written = false
         lines = @contents.split(/\n/, -1)
-        head = lines.shift(10)
+        head = lines.shift(@marker_length)
         while(head.size > 0)
           line = head.shift
-          text += line + "\n"
+          if head.size == 0 
+            text += line
+          else
+            text += line + "\n"
+          end
+
           @config[:after].each do |regex|
             pattern = Regexp.new(regex)
             if pattern.match(line)
@@ -123,9 +128,9 @@ module CopyrightHeader
       if has_copyright?
         text = self.format(license)
         # Due to editors messing with whitespace, we'll make this more of a fuzzy match and use \s to match whitespace
-        pattern = Regexp.escape(text).gsub(/\\s*$/, '\s')
+        pattern = Regexp.escape(text).gsub(/\\[ n]/, '\s*').gsub(/\\s*$/, '\s')
         exp = Regexp.new(pattern)
-        @contents.gsub!(exp, '')
+        @contents.gsub!(exp, "\n")
         @contents
       else
         STDERR.puts "SKIP #{@file}; copyright not detected"
@@ -134,7 +139,7 @@ module CopyrightHeader
     end
 
     def has_copyright?
-      @contents.split(/\n/)[0..@marker_length].select { |line| line =~ /(?!class\s+)([Cc]opyright|[Ll]icense#{@marker})\s/ }.length > 0
+      @contents.split(/\n/)[0..@marker_length].select { |line| line =~ /(?!class\s+)(#{@marker})\s/ }.length > 0
     end
   end
 
